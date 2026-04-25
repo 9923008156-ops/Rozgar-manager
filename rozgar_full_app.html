@@ -1,0 +1,2218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rozgar Manager — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    /* ============ DESIGN TOKENS ============ */
+    :root {
+      --bg: #eef3fb;
+      --surface: #ffffff;
+      --surface2: #dce8f7;
+      --border: #c2d6f0;
+      --border2: #94b8e4;
+      --text: #0d1e35;
+      --text2: #3a5a80;
+      --text3: #7a9fc0;
+      --accent: #1a5fa8;
+      --accent-dark: #0d3e78;
+      --accent-bg: #ddeaf8;
+      --accent-text: #0d3e78;
+      --green: #1a7a4a;
+      --green-bg: #d6f0e4;
+      --red: #c0392b;
+      --red-bg: #fde8e6;
+      --amber: #a06010;
+      --amber-bg: #fef0d6;
+      --radius: 8px;
+      --radius-lg: 12px;
+      --shadow: 0 2px 16px rgba(26, 95, 168, 0.10);
+      --shadow-lg: 0 8px 32px rgba(26, 95, 168, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Noto Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ============ LOGIN PAGE ============ */
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0d3e78 0%, #1a5fa8 60%, #3a8fdc 100%);
+      padding: 1rem;
+    }
+
+    .login-card {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 2.5rem 2rem;
+      width: min(420px, 100%);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .login-logo {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin: 0 auto 1.25rem;
+    }
+
+    .login-title {
+      font-size: 22px;
+      font-weight: 700;
+      text-align: center;
+      color: var(--accent-dark);
+      margin-bottom: 4px;
+    }
+
+    .login-sub {
+      font-size: 13px;
+      color: var(--text2);
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .login-form .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .login-form label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text2);
+      display: block;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .login-form input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    .login-form input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(26, 95, 168, 0.12);
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+      margin-top: 0.5rem;
+    }
+
+    .login-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(26, 95, 168, 0.3);
+    }
+
+    .login-error {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid #f0c0bb;
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .login-error.show {
+      display: block;
+    }
+
+    .demo-accounts {
+      margin-top: 1.5rem;
+      padding: 14px;
+      background: var(--accent-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    .demo-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .demo-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+
+    .demo-chip {
+      flex: 1;
+      font-size: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 8px;
+      cursor: pointer;
+      text-align: center;
+      color: var(--accent);
+      transition: all 0.15s;
+    }
+
+    .demo-chip:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .demo-label {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 2px;
+      display: block;
+    }
+
+    /* ============ APP SHELL ============ */
+    .app-shell {
+      display: none;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+
+    .app-shell.visible {
+      display: flex;
+    }
+
+    /* HEADER */
+    .header {
+      background: linear-gradient(135deg, #0d3e78 0%, #1a5fa8 100%);
+      color: #fff;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(26, 95, 168, 0.25);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-logo {
+      width: 32px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .header-sub {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 5px 12px 5px 8px;
+      cursor: pointer;
+    }
+
+    .user-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .user-name {
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .user-role {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .logout-btn {
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 5px 12px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    /* NAV */
+    .nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 0;
+      padding: 0 1.5rem;
+      overflow-x: auto;
+    }
+
+    .nav-btn {
+      font-size: 13px;
+      padding: 13px 16px;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text2);
+      font-family: inherit;
+      white-space: nowrap;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-btn:hover {
+      color: var(--accent);
+      background: var(--accent-bg);
+    }
+
+    .nav-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      font-weight: 600;
+      background: var(--accent-bg);
+    }
+
+    .nav-btn .icon {
+      font-size: 14px;
+    }
+
+    /* CONTENT */
+    .content {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1.5rem;
+      flex: 1;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.18s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* CARDS */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--accent);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow);
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent-text);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    /* METRICS */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+
+    .metric {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 1rem;
+      box-shadow: var(--shadow);
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .metric-value.blue {
+      color: var(--accent);
+    }
+
+    .metric-value.green {
+      color: var(--green);
+    }
+
+    .metric-value.red {
+      color: var(--red);
+    }
+
+    .metric-value.amber {
+      color: var(--amber);
+    }
+
+    /* WORKER ROWS */
+    .worker-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .worker-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: all 0.15s;
+    }
+
+    .worker-row:hover {
+      border-color: var(--accent);
+      box-shadow: 0 2px 8px rgba(26, 95, 168, 0.08);
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--accent-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      flex-shrink: 0;
+      border: 1.5px solid var(--border);
+    }
+
+    .worker-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .worker-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .worker-meta {
+      font-size: 12px;
+      color: var(--text2);
+      margin-top: 1px;
+    }
+
+    .worker-wage {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent);
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .worker-wage small {
+      display: block;
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--text2);
+    }
+
+    /* BADGES */
+    .badge {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-present {
+      background: var(--green-bg);
+      color: var(--green);
+    }
+
+    .badge-absent {
+      background: var(--red-bg);
+      color: var(--red);
+    }
+
+    .badge-paid {
+      background: var(--green-bg);
+      color: var(--green);
+    }
+
+    .badge-pending {
+      background: var(--amber-bg);
+      color: var(--amber);
+    }
+
+    .badge-admin {
+      background: var(--accent-bg);
+      color: var(--accent);
+    }
+
+    .badge-manager {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .badge-viewer {
+      background: #f3e5f5;
+      color: #6a1b9a;
+    }
+
+    /* FORMS */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-group label {
+      font-size: 12px;
+      color: var(--text2);
+      font-weight: 600;
+    }
+
+    .form-group input,
+    .form-group select {
+      font-size: 14px;
+      padding: 8px 10px;
+      border-radius: var(--radius);
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(26, 95, 168, 0.12);
+    }
+
+    /* BUTTONS */
+    .btn {
+      font-size: 13px;
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      background: var(--surface);
+      color: var(--accent);
+      font-family: inherit;
+      transition: all 0.15s;
+      font-weight: 500;
+    }
+
+    .btn:hover {
+      background: var(--accent-bg);
+      border-color: var(--accent);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-dark);
+      border-color: var(--accent-dark);
+    }
+
+    .btn-sm {
+      font-size: 12px;
+      padding: 5px 10px;
+    }
+
+    .btn-danger {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .btn-danger:hover {
+      background: var(--red-bg);
+    }
+
+    .btn-green {
+      background: var(--green);
+      color: #fff;
+      border-color: var(--green);
+    }
+
+    .btn-green:hover {
+      opacity: 0.88;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    /* TABLE */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .data-table th {
+      text-align: left;
+      padding: 9px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      border-bottom: 2px solid var(--border);
+      background: var(--accent-bg);
+    }
+
+    .data-table td {
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .data-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .data-table tr:hover td {
+      background: var(--bg);
+    }
+
+    .data-table tfoot td {
+      font-weight: 700;
+      background: var(--accent-bg);
+      color: var(--accent-dark);
+      padding: 10px;
+      border-top: 2px solid var(--border2);
+    }
+
+    /* ATTENDANCE */
+    .att-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 8px;
+    }
+
+    .att-row label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text2);
+      margin-left: auto;
+    }
+
+    .att-row input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--green);
+    }
+
+    /* CALENDAR */
+    .cal-wrap {
+      overflow-x: auto;
+    }
+
+    .cal-header-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+      margin-bottom: 3px;
+    }
+
+    .cal-day-lbl {
+      font-size: 11px;
+      color: var(--text3);
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+    }
+
+    .cal-day {
+      aspect-ratio: 1;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      border: 1px solid var(--border);
+      color: var(--text2);
+    }
+
+    .cal-day.present {
+      background: var(--green-bg);
+      color: var(--green);
+      border-color: #a5d6b8;
+      font-weight: 600;
+    }
+
+    .cal-day.absent {
+      background: var(--red-bg);
+      color: var(--red);
+      border-color: #f0b8b2;
+    }
+
+    .cal-day.today {
+      border: 2px solid var(--accent);
+      font-weight: 700;
+    }
+
+    .cal-day.empty {
+      visibility: hidden;
+      border: none;
+    }
+
+    /* SECTION TITLE */
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin: 1.25rem 0 0.75rem;
+      border-left: 3px solid var(--accent);
+      padding-left: 8px;
+    }
+
+    /* SCHEME CARDS */
+    .scheme-card {
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 10px;
+      background: var(--surface);
+    }
+
+    .scheme-card:hover {
+      box-shadow: var(--shadow);
+    }
+
+    .scheme-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent-text);
+      margin-bottom: 4px;
+    }
+
+    .scheme-desc {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.55;
+    }
+
+    .scheme-tag {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 9px;
+      border-radius: 20px;
+      background: var(--accent-bg);
+      color: var(--accent-text);
+      margin-top: 8px;
+      font-weight: 600;
+      margin-right: 4px;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      background: var(--accent);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+      z-index: 9999;
+      white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(26, 95, 168, 0.3);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast.error {
+      background: var(--red);
+    }
+
+    /* MODAL */
+    .modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(13, 30, 53, 0.5);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-bg.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      width: min(500px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .modal-head {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--accent-dark);
+    }
+
+    .close-x {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--text2);
+    }
+
+    /* ROLE GUARD */
+    .role-hidden {
+      display: none !important;
+    }
+
+    /* AUDIT LOG */
+    .audit-row {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .audit-row:last-child {
+      border-bottom: none;
+    }
+
+    .audit-time {
+      font-size: 11px;
+      color: var(--text3);
+      white-space: nowrap;
+      min-width: 130px;
+    }
+
+    .audit-badge {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 20px;
+      background: var(--accent-bg);
+      color: var(--accent);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* USERS TABLE */
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 8px;
+    }
+
+    .user-ava {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      flex: 1;
+    }
+
+    .user-uname {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .user-email {
+      font-size: 12px;
+      color: var(--text2);
+    }
+
+    /* PRINT */
+    @media print {
+
+      .header,
+      .nav,
+      .actions,
+      .btn,
+      .login-page {
+        display: none !important;
+      }
+
+      .tab-content {
+        display: block !important;
+      }
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 600px) {
+      .content {
+        padding: 1rem;
+      }
+
+      .metrics {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .data-table {
+        font-size: 12px;
+      }
+
+      .data-table th,
+      .data-table td {
+        padding: 7px 6px;
+      }
+
+      .header-right .user-name,
+      .header-right .user-role {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ============ LOGIN PAGE ============ -->
+  <div class="login-page" id="login-page">
+    <div class="login-card">
+      <div class="login-logo">&#128119;</div>
+      <div class="login-title">Rozgar Manager</div>
+      <div class="login-sub">Daily Wage Worker Management System</div>
+
+      <div class="login-error" id="login-error">Invalid username or password. Please try again.</div>
+
+      <div id="g_id_onload" data-client_id="YOUR_GOOGLE_CLIENT_ID" data-context="signin" data-ux_mode="popup"
+        data-callback="handleGoogleLogin" data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline"
+        data-text="signin_with" data-size="large" data-logo_alignment="left"
+        style="margin-bottom: 1.5rem; display: flex; justify-content: center;">
+      </div>
+
+      <div
+        style="text-align: center; color: var(--text2); font-size: 12px; margin-bottom: 1rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
+        Or login with username</div>
+
+      <div class="login-form">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="inp-username" placeholder="Enter your username" autocomplete="username" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="inp-password" placeholder="Enter your password" autocomplete="current-password" />
+        </div>
+        <button class="login-btn" onclick="doLogin()">Sign In</button>
+      </div>
+
+      <div class="demo-accounts">
+        <div class="demo-title">Demo Accounts — Click to auto-fill</div>
+        <div class="demo-row">
+          <div class="demo-chip" onclick="fillDemo('admin','admin123')">
+            admin / admin123
+            <span class="demo-label">Full Access</span>
+          </div>
+          <div class="demo-chip" onclick="fillDemo('manager','manager123')">
+            manager / manager123
+            <span class="demo-label">Manage Workers</span>
+          </div>
+          <div class="demo-chip" onclick="fillDemo('viewer','viewer123')">
+            viewer / viewer123
+            <span class="demo-label">View Only</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ APP SHELL ============ -->
+  <div class="app-shell" id="app-shell">
+
+    <div class="header">
+      <div class="header-left">
+        <div class="header-logo">&#128119;</div>
+        <div>
+          <div class="header-title">Rozgar Manager</div>
+          <div class="header-sub">Daily Wage Worker System</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="user-chip">
+          <div class="user-avatar" id="hdr-avatar">A</div>
+          <div>
+            <div class="user-name" id="hdr-username">Admin</div>
+            <div class="user-role" id="hdr-role">Administrator</div>
+          </div>
+        </div>
+        <button class="logout-btn" onclick="doLogout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="nav" id="main-nav">
+      <button class="nav-btn active" onclick="showTab('dashboard',this)"><span class="icon">📊</span>Dashboard</button>
+      <button class="nav-btn" onclick="showTab('citywise',this)"><span class="icon">📍</span>City View</button>
+      <button class="nav-btn" onclick="showTab('workers',this)"><span class="icon">👷</span>Workers</button>
+      <button class="nav-btn" onclick="showTab('attendance',this)"><span class="icon">✅</span>Attendance</button>
+      <button class="nav-btn" onclick="showTab('payments',this)"><span class="icon">💰</span>Payments</button>
+      <button class="nav-btn" onclick="showTab('projects',this)"><span class="icon">🏗️</span>Projects</button>
+      <button class="nav-btn role-admin" onclick="showTab('users',this)"><span class="icon">👥</span>Users</button>
+      <button class="nav-btn role-admin" onclick="showTab('audit',this)"><span class="icon">📋</span>Audit Log</button>
+      <button class="nav-btn" onclick="showTab('schemes',this)"><span class="icon">🏛️</span>Gov. Schemes</button>
+    </div>
+
+    <div class="content">
+
+      <!-- ===== DASHBOARD ===== -->
+      <div id="tab-dashboard" class="tab-content active">
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric-label">Total Workers</div>
+            <div class="metric-value blue" id="m-total">0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Present Today</div>
+            <div class="metric-value green" id="m-present">0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Absent Today</div>
+            <div class="metric-value red" id="m-absent">0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Today's Wages</div>
+            <div class="metric-value" id="m-wages">₹0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Monthly Total</div>
+            <div class="metric-value" id="m-monthly">₹0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Active Projects</div>
+            <div class="metric-value blue" id="m-projects">0</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Today's Worker Status
+            <span style="font-size:12px;color:var(--text2);font-weight:400;" id="dash-today"></span>
+          </div>
+          <div class="worker-list" id="dash-workers"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Project-wise Summary</div>
+          <div id="dash-projects"></div>
+        </div>
+      </div>
+
+      <!-- ===== WORKERS ===== -->
+      <div id="tab-workers" class="tab-content">
+        <div class="card role-edit">
+          <div class="card-title">Add New Worker</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Full Name *</label><input id="w-name" placeholder="e.g. Ramu Kumar" /></div>
+            <div class="form-group"><label>Daily Wage (₹) *</label><input id="w-wage" type="number" placeholder="450" />
+            </div>
+            <div class="form-group"><label>Work Type</label>
+              <select id="w-type">
+                <option>Construction</option>
+                <option>Agriculture</option>
+                <option>Loading/Unloading</option>
+                <option>Cleaning</option>
+                <option>Shop Helper</option>
+                <option>Plumbing</option>
+                <option>Electrical</option>
+                <option>Painting</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Mobile Number</label><input id="w-mobile" placeholder="9876543210" /></div>
+            <div class="form-group"><label>Assign to Project</label><select id="w-project"></select></div>
+            <div class="form-group"><label>Aadhaar (optional)</label><input id="w-aadhaar"
+                placeholder="XXXX-XXXX-XXXX" /></div>
+          </div>
+          <div class="section-title" style="margin-top:1rem;">Bank Account Details</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Account Holder</label><input id="w-bname" placeholder="Name as per bank" />
+            </div>
+            <div class="form-group"><label>Account Number</label><input id="w-bacc" placeholder="1234567890" /></div>
+            <div class="form-group"><label>IFSC Code</label><input id="w-bifsc" placeholder="SBIN0001234" /></div>
+            <div class="form-group"><label>Bank Name</label><input id="w-bbank" placeholder="State Bank of India" />
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn btn-primary" onclick="addWorker()">Add Worker</button>
+          </div>
+        </div>
+
+        <div class="card-title" style="margin-top:1.25rem;">
+          All Workers (
+          <span id="worker-count">0</span>)
+          <div style="display:flex;gap:8px;">
+            <input id="worker-search" placeholder="Search..."
+              style="font-size:13px;padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:inherit;background:var(--bg);color:var(--text);"
+              oninput="renderWorkers()" />
+            <button class="btn btn-sm" onclick="exportWorkersExcel()">Export Excel</button>
+          </div>
+        </div>
+        <div class="worker-list" id="workers-list"></div>
+      </div>
+
+      <!-- ===== ATTENDANCE ===== -->
+      <div id="tab-attendance" class="tab-content">
+        <div class="card role-edit">
+          <div class="card-title">Mark Today's Attendance
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-sm btn-green" onclick="markAll(true)">All Present</button>
+              <button class="btn btn-sm" onclick="markAll(false)">All Absent</button>
+            </div>
+          </div>
+          <div id="att-list"></div>
+          <div class="actions">
+            <button class="btn btn-primary" onclick="saveAttendance()">Save Attendance</button>
+            <button class="btn btn-sm" onclick="exportAttExcel()">Export Excel</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">April 2026 — Calendar</div>
+          <div style="display:flex;gap:14px;margin-bottom:10px;font-size:12px;flex-wrap:wrap;">
+            <span style="display:flex;align-items:center;gap:5px;"><span
+                style="width:12px;height:12px;border-radius:3px;background:var(--green-bg);border:1px solid #a5d6b8;display:inline-block;"></span>Present</span>
+            <span style="display:flex;align-items:center;gap:5px;"><span
+                style="width:12px;height:12px;border-radius:3px;background:var(--red-bg);border:1px solid #f0b8b2;display:inline-block;"></span>Absent</span>
+            <span style="display:flex;align-items:center;gap:5px;"><span
+                style="width:12px;height:12px;border-radius:3px;border:2px solid var(--accent);display:inline-block;"></span>Today
+              (14)</span>
+          </div>
+          <div class="cal-wrap">
+            <div class="cal-header-row">
+              <div class="cal-day-lbl">Mon</div>
+              <div class="cal-day-lbl">Tue</div>
+              <div class="cal-day-lbl">Wed</div>
+              <div class="cal-day-lbl">Thu</div>
+              <div class="cal-day-lbl">Fri</div>
+              <div class="cal-day-lbl">Sat</div>
+              <div class="cal-day-lbl">Sun</div>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PAYMENTS ===== -->
+      <div id="tab-payments" class="tab-content">
+        <div class="metrics" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+          <div class="metric">
+            <div class="metric-label">Month Total</div>
+            <div class="metric-value" id="p-total">₹0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Working Days</div>
+            <div class="metric-value blue" id="p-days">12</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Paid Workers</div>
+            <div class="metric-value green" id="p-paid">0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Pending</div>
+            <div class="metric-value amber" id="p-pending">0</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">April 2026 Payment Sheet
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-sm btn-green" onclick="exportPayExcel()">Export Excel</button>
+              <button class="btn btn-sm" onclick="window.print()">Print / PDF</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table" id="pay-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Work Type</th>
+                  <th>Daily Wage</th>
+                  <th>Days</th>
+                  <th>Gross</th>
+                  <th>Bank</th>
+                  <th>Status</th>
+                  <th class="role-edit">Action</th>
+                </tr>
+              </thead>
+              <tbody id="pay-body"></tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="4" style="color:var(--text2);">Total</td>
+                  <td id="pf-days"></td>
+                  <td id="pf-total"></td>
+                  <td colspan="3"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PROJECTS ===== -->
+      <div id="tab-projects" class="tab-content">
+        <div class="card role-edit">
+          <div class="card-title">Add New Project / Site</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Project Name *</label><input id="p-name" placeholder="Road Work Site A" />
+            </div>
+            <div class="form-group"><label>Location</label><input id="p-location" placeholder="Srivilliputhur" /></div>
+            <div class="form-group"><label>Supervisor</label><input id="p-supervisor" placeholder="Supervisor name" />
+            </div>
+            <div class="form-group"><label>Start Date</label><input id="p-start" type="date" /></div>
+            <div class="form-group"><label>Status</label>
+              <select id="p-status">
+                <option>Active</option>
+                <option>Completed</option>
+                <option>On Hold</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Budget (₹)</label><input id="p-budget" type="number" placeholder="50000" />
+            </div>
+          </div>
+          <div class="actions"><button class="btn btn-primary" onclick="addProject()">Add Project</button></div>
+        </div>
+        <div class="section-title">All Projects</div>
+        <div id="projects-list"></div>
+      </div>
+
+      <!-- ===== USERS (Admin only) ===== -->
+      <div id="tab-users" class="tab-content">
+        <div class="card">
+          <div class="card-title">Add New User</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Full Name *</label><input id="u-name" placeholder="e.g. Selvam K" /></div>
+            <div class="form-group"><label>Username *</label><input id="u-uname" placeholder="e.g. selvam" /></div>
+            <div class="form-group"><label>Password *</label><input id="u-pass" type="password"
+                placeholder="min 6 chars" /></div>
+            <div class="form-group"><label>Email</label><input id="u-email" placeholder="e.g. selvam@example.com" />
+            </div>
+            <div class="form-group"><label>Role</label>
+              <select id="u-role">
+                <option value="admin">Admin (Full Access)</option>
+                <option value="manager">Manager (Add/Edit)</option>
+                <option value="viewer" selected>Viewer (Read Only)</option>
+              </select>
+            </div>
+          </div>
+          <div class="actions"><button class="btn btn-primary" onclick="addUser()">Add User</button></div>
+        </div>
+        <div class="section-title">All Users</div>
+        <div id="users-list"></div>
+      </div>
+
+      <!-- ===== AUDIT LOG (Admin only) ===== -->
+      <div id="tab-audit" class="tab-content">
+        <div class="card">
+          <div class="card-title">System Audit Log
+            <button class="btn btn-sm btn-danger" onclick="clearAudit()">Clear Log</button>
+          </div>
+          <div id="audit-log"></div>
+        </div>
+      </div>
+
+      <!-- ===== SCHEMES ===== -->
+      <div id="tab-schemes" class="tab-content">
+        <div class="metrics" style="grid-template-columns:repeat(2,1fr);margin-bottom:1.25rem;">
+          <div class="metric">
+            <div class="metric-label">Available Schemes</div>
+            <div class="metric-value blue">5</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">e-Shram Status</div>
+            <div class="metric-value amber" style="font-size:15px;">Register Now</div>
+          </div>
+        </div>
+
+        <div class="scheme-card">
+          <div class="scheme-title">MGNREGA — 100 Days Work Guarantee</div>
+          <div class="scheme-desc">Guarantees 100 days of paid work per year to rural households. Wages paid directly to
+            bank account. Tamil Nadu: ₹294/day minimum.</div>
+          <span class="scheme-tag">Rural Employment</span>
+          <span class="scheme-tag" style="background:var(--green-bg);color:var(--green);">₹294/day TN</span>
+        </div>
+        <div class="scheme-card">
+          <div class="scheme-title">e-Shram Card — National Workers Database</div>
+          <div class="scheme-desc">Register at eshram.gov.in. Free ₹2 lakh accidental insurance. Links to all central
+            welfare schemes. Workers aged 16–59 can register.</div>
+          <span class="scheme-tag">Free Registration</span>
+          <span class="scheme-tag" style="background:var(--green-bg);color:var(--green);">₹2L Insurance</span>
+        </div>
+        <div class="scheme-card">
+          <div class="scheme-title">PM-SYM — Shram Yogi Maan-Dhan Pension</div>
+          <div class="scheme-desc">₹3,000/month pension after age 60. Contribution ₹55–₹200/month (government matches).
+            For workers earning &lt;₹15,000/month.</div>
+          <span class="scheme-tag">Pension</span>
+        </div>
+        <div class="scheme-card">
+          <div class="scheme-title">ESIC — Employee State Insurance</div>
+          <div class="scheme-desc">Medical care, maternity, disability benefits. Workers earning up to ₹21,000/month
+            eligible. Employer: 3.25%, Employee: 0.75%.</div>
+          <span class="scheme-tag">Health Insurance</span>
+        </div>
+        <div class="scheme-card">
+          <div class="scheme-title">PM Awas Yojana — Housing Assistance</div>
+          <div class="scheme-desc">Up to ₹1.2 lakh for pucca house construction. Apply at Gram Panchayat or
+            pmayg.nic.in. Amount paid to bank in instalments.</div>
+          <span class="scheme-tag">Housing</span>
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+          <div class="card-title">Helpline Numbers</div>
+          <table style="width:100%;font-size:13px;border-collapse:collapse;">
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 0;color:var(--text2);">MGNREGA Helpline</td>
+              <td style="padding:8px 0;font-weight:600;">1800-11-0707</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 0;color:var(--text2);">e-Shram Helpline</td>
+              <td style="padding:8px 0;font-weight:600;">14434</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 0;color:var(--text2);">Labour Ministry</td>
+              <td style="padding:8px 0;font-weight:600;">1800-11-1720</td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0;color:var(--text2);">ESIC Helpline</td>
+              <td style="padding:8px 0;font-weight:600;">1800-11-2526</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== CITY VIEW ===== -->
+      <div id="tab-citywise" class="tab-content">
+        <div class="metrics" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
+          <div class="metric">
+            <div class="metric-label">Cities Covered</div>
+            <div class="metric-value blue" id="cv-cities">0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Total Workers</div>
+            <div class="metric-value" id="cv-total">0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Total Wages/Day</div>
+            <div class="metric-value green" id="cv-wages">₹0</div>
+          </div>
+        </div>
+        <div id="citywise-list"
+          style="display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));"></div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /app-shell -->
+
+  <!-- WORKER DETAIL MODAL -->
+  <div class="modal-bg" id="modal-worker">
+    <div class="modal">
+      <div class="modal-head">Worker Details <button class="close-x"
+          onclick="closeModal('modal-worker')">&times;</button></div>
+      <div id="modal-worker-body"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ============ BACKEND + APP LOGIC ============ -->
+  <script>
+    // =========================================================
+    // BACKEND LAYER — localStorage-based database
+    // =========================================================
+    const DB = {
+      get(key) { try { return JSON.parse(localStorage.getItem('rz_' + key)) || null; } catch { return null; } },
+      set(key, val) { localStorage.setItem('rz_' + key, JSON.stringify(val)); },
+      del(key) { localStorage.removeItem('rz_' + key); }
+    };
+
+    // ---- AUTH BACKEND ----
+    const AUTH = {
+      // Stored users (hashed with simple XOR for demo — in real app use bcrypt server-side)
+      hashPwd(pwd) { return btoa(pwd.split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ (i % 7 + 3))).join('')); },
+      checkPwd(pwd, hash) { return this.hashPwd(pwd) === hash; },
+
+      getUsers() {
+        let users = DB.get('users');
+        if (!users) {
+          // Seed default users
+          users = [
+            { id: 1, name: 'Admin User', username: 'admin', password: this.hashPwd('admin123'), email: 'admin@rozgar.in', role: 'admin', createdAt: new Date().toISOString() },
+            { id: 2, name: 'Site Manager', username: 'manager', password: this.hashPwd('manager123'), email: 'manager@rozgar.in', role: 'manager', createdAt: new Date().toISOString() },
+            { id: 3, name: 'Viewer Staff', username: 'viewer', password: this.hashPwd('viewer123'), email: 'viewer@rozgar.in', role: 'viewer', createdAt: new Date().toISOString() }
+          ];
+          DB.set('users', users);
+        }
+        return users;
+      },
+
+      login(username, password) {
+        const users = this.getUsers();
+        const user = users.find(u => u.username === username.trim().toLowerCase());
+        if (!user) return null;
+        if (!this.checkPwd(password, user.password)) return null;
+        const token = { userId: user.id, username: user.username, name: user.name, role: user.role, exp: Date.now() + 8 * 60 * 60 * 1000 };
+        DB.set('session', token);
+        return token;
+      },
+
+      logout() { DB.del('session'); },
+
+      currentUser() {
+        const s = DB.get('session');
+        if (!s) return null;
+        if (Date.now() > s.exp) { DB.del('session'); return null; }
+        return s;
+      },
+
+      addUser(name, username, password, email, role) {
+        const users = this.getUsers();
+        if (users.find(u => u.username === username)) return { error: 'Username already exists' };
+        const newUser = { id: Date.now(), name, username: username.toLowerCase(), password: this.hashPwd(password), email, role, createdAt: new Date().toISOString() };
+        users.push(newUser);
+        DB.set('users', users);
+        return { success: true, user: newUser };
+      },
+
+      removeUser(id) {
+        let users = this.getUsers();
+        users = users.filter(u => u.id !== id);
+        DB.set('users', users);
+      },
+
+      handleGoogleToken(token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+          let users = this.getUsers();
+          let user = users.find(u => u.email === payload.email);
+          if (!user) {
+            user = { id: Date.now(), name: payload.name, username: payload.email.split('@')[0].toLowerCase(), password: this.hashPwd('google_auth'), email: payload.email, role: 'viewer', createdAt: new Date().toISOString() };
+            users.push(user);
+            DB.set('users', users);
+          }
+          const session = { userId: user.id, username: user.username, name: user.name, role: user.role, exp: Date.now() + 8 * 60 * 60 * 1000 };
+          DB.set('session', session);
+          return session;
+        } catch (e) {
+          return null;
+        }
+      }
+    };
+
+    function handleGoogleLogin(response) {
+      const session = AUTH.handleGoogleToken(response.credential);
+      if (session) {
+        currentUser = session;
+        AuditDB.log('LOGIN', `User "${session.username}" logged in via Google`, session.username);
+        bootApp();
+      } else {
+        const err = document.getElementById('login-error');
+        err.textContent = 'Google Login Failed. Please try again.';
+        err.classList.add('show');
+      }
+    }
+
+    // ---- DATA BACKEND ----
+    const WorkerDB = {
+      all() { return DB.get('workers') || seedWorkers(); },
+      save(workers) { DB.set('workers', workers); },
+      add(w) { const ws = this.all(); ws.push(w); this.save(ws); },
+      remove(id) { this.save(this.all().filter(w => w.id !== id)); },
+      update(id, data) {
+        const ws = this.all().map(w => w.id === id ? { ...w, ...data } : w);
+        this.save(ws);
+      }
+    };
+
+    const ProjectDB = {
+      all() { return DB.get('projects') || seedProjects(); },
+      save(p) { DB.set('projects', p); },
+      add(p) { const ps = this.all(); ps.push(p); this.save(ps); },
+      remove(id) { this.save(this.all().filter(p => p.id !== id)); }
+    };
+
+    const AuditDB = {
+      all() { return DB.get('audit') || []; },
+      log(action, detail, user) {
+        const logs = this.all();
+        logs.unshift({ id: Date.now(), time: new Date().toISOString(), action, detail, user: user || (currentUser ? currentUser.username : 'system') });
+        if (logs.length > 200) logs.splice(200);
+        DB.set('audit', logs);
+      },
+      clear() { DB.set('audit', []); }
+    };
+
+    // ---- SEED DATA ----
+    function seedWorkers() {
+      const workers = [
+        { id: 1, name: 'Ramu Kumar', wage: 450, type: 'Construction', mobile: '9876501234', project: 1, aadhaar: '2345-6789-0123', bank: { name: 'Ramu Kumar', acc: '12345678901', ifsc: 'SBIN0001234', bank: 'SBI' }, present: true, paid: false },
+        { id: 2, name: 'Sunita Devi', wage: 350, type: 'Agriculture', mobile: '9876502345', project: 2, aadhaar: '3456-7890-1234', bank: { name: 'Sunita Devi', acc: '23456789012', ifsc: 'CNRB0001234', bank: 'Canara Bank' }, present: true, paid: true },
+        { id: 3, name: 'Mohan Singh', wage: 500, type: 'Loading/Unloading', mobile: '9876503456', project: 1, aadhaar: '4567-8901-2345', bank: { name: 'Mohan Singh', acc: '34567890123', ifsc: 'PUNB0001234', bank: 'PNB' }, present: false, paid: false },
+        { id: 4, name: 'Kavitha R', wage: 320, type: 'Cleaning', mobile: '9876504567', project: 3, aadhaar: '5678-9012-3456', bank: { name: 'Kavitha R', acc: '45678901234', ifsc: 'IOBA0001234', bank: 'IOB' }, present: true, paid: true },
+        { id: 5, name: 'Arjun Patel', wage: 520, type: 'Construction', mobile: '9876505678', project: 1, aadhaar: '6789-0123-4567', bank: { name: 'Arjun Patel', acc: '56789012345', ifsc: 'SBIN0005678', bank: 'SBI' }, present: true, paid: false },
+        { id: 6, name: 'Lakshmi Bai', wage: 330, type: 'Shop Helper', mobile: '9876506789', project: 3, aadhaar: '7890-1234-5678', bank: { name: 'Lakshmi Bai', acc: '67890123456', ifsc: 'KVBL0001234', bank: 'KVB' }, present: false, paid: false }
+      ];
+      DB.set('workers', workers);
+      return workers;
+    }
+
+    function seedProjects() {
+      const projects = [
+        { id: 1, name: 'Road Work — NH 44', location: 'Srivilliputhur', supervisor: 'Selvam', start: '2026-03-01', status: 'Active', budget: 200000 },
+        { id: 2, name: 'Farm Harvest — Virudhunagar', location: 'Virudhunagar', supervisor: 'Murugan', start: '2026-04-01', status: 'Active', budget: 80000 },
+        { id: 3, name: 'Building Construction — Main St', location: 'Srivilliputhur', supervisor: 'Rajan', start: '2026-02-15', status: 'Active', budget: 500000 }
+      ];
+      DB.set('projects', projects);
+      return projects;
+    }
+
+    // =========================================================
+    // APP STATE
+    // =========================================================
+    let currentUser = null;
+    const DAYS_WORKED = 12;
+    let nextWId = Date.now();
+    let nextPId = Date.now() + 1;
+
+    // =========================================================
+    // AUTH UI
+    // =========================================================
+    function fillDemo(u, p) {
+      document.getElementById('inp-username').value = u;
+      document.getElementById('inp-password').value = p;
+    }
+
+    function doLogin() {
+      const u = document.getElementById('inp-username').value.trim();
+      const p = document.getElementById('inp-password').value;
+      const err = document.getElementById('login-error');
+      if (!u || !p) { err.textContent = 'Please enter username and password.'; err.classList.add('show'); return; }
+      const session = AUTH.login(u, p);
+      if (!session) { err.textContent = 'Invalid username or password.'; err.classList.add('show'); return; }
+      err.classList.remove('show');
+      currentUser = session;
+      AuditDB.log('LOGIN', `User "${session.username}" logged in`, session.username);
+      bootApp();
+    }
+
+    function doLogout() {
+      AuditDB.log('LOGOUT', `User "${currentUser.username}" logged out`, currentUser.username);
+      AUTH.logout();
+      currentUser = null;
+      document.getElementById('app-shell').classList.remove('visible');
+      document.getElementById('login-page').style.display = 'flex';
+      document.getElementById('inp-password').value = '';
+      toast('Logged out successfully');
+    }
+
+    function bootApp() {
+      document.getElementById('login-page').style.display = 'none';
+      document.getElementById('app-shell').classList.add('visible');
+
+      // Set user info in header
+      document.getElementById('hdr-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+      document.getElementById('hdr-username').textContent = currentUser.name;
+      document.getElementById('hdr-role').textContent = currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1);
+
+      // Apply role permissions
+      applyRoles();
+      populateProjectSelect();
+      renderDashboard();
+    }
+
+    function applyRoles() {
+      const isAdmin = currentUser.role === 'admin';
+      const canEdit = currentUser.role === 'admin' || currentUser.role === 'manager';
+
+      // Show/hide admin-only nav items
+      document.querySelectorAll('.role-admin').forEach(el => {
+        el.classList.toggle('role-hidden', !isAdmin);
+      });
+      // Show/hide edit elements
+      document.querySelectorAll('.role-edit').forEach(el => {
+        el.classList.toggle('role-hidden', !canEdit);
+      });
+    }
+
+    // =========================================================
+    // UTILITIES
+    // =========================================================
+    function initials(n) { return n.split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2); }
+    function fmt(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
+    function projName(id) { const p = ProjectDB.all().find(x => x.id === id); return p ? p.name : 'Unassigned'; }
+    function canEdit() { return currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager'); }
+
+    function toast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (type ? ' ' + type : '');
+      clearTimeout(t._t);
+      t._t = setTimeout(() => t.classList.remove('show'), 2800);
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    // =========================================================
+    // TABS
+    // =========================================================
+    function showTab(tab, btn) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      if (btn) btn.classList.add('active');
+      const renders = { dashboard: renderDashboard, citywise: renderCityWise, workers: renderWorkers, attendance: renderAttendance, payments: renderPayments, projects: renderProjects, users: renderUsers, audit: renderAudit };
+      if (renders[tab]) renders[tab]();
+    }
+
+    // =========================================================
+    // DASHBOARD
+    // =========================================================
+    function renderDashboard() {
+      const workers = WorkerDB.all();
+      const projects = ProjectDB.all();
+      const present = workers.filter(w => w.present);
+      const wages = present.reduce((s, w) => s + w.wage, 0);
+      const monthly = workers.reduce((s, w) => s + w.wage * DAYS_WORKED, 0);
+      const activeProj = projects.filter(p => p.status === 'Active').length;
+
+      document.getElementById('m-total').textContent = workers.length;
+      document.getElementById('m-present').textContent = present.length;
+      document.getElementById('m-absent').textContent = workers.length - present.length;
+      document.getElementById('m-wages').textContent = fmt(wages);
+      document.getElementById('m-monthly').textContent = fmt(monthly);
+      document.getElementById('m-projects').textContent = activeProj;
+      document.getElementById('dash-today').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+      document.getElementById('dash-workers').innerHTML = workers.map(w => `
+    <div class="worker-row">
+      <div class="avatar">${initials(w.name)}</div>
+      <div class="worker-info">
+        <div class="worker-name">${w.name}</div>
+        <div class="worker-meta">${w.type} · ${projName(w.project)}</div>
+      </div>
+      <span class="badge ${w.present ? 'badge-present' : 'badge-absent'}">${w.present ? 'Present' : 'Absent'}</span>
+      <div class="worker-wage">${fmt(w.wage)}<small>per day</small></div>
+    </div>`).join('');
+
+      const byProj = {};
+      projects.forEach(p => { byProj[p.id] = { name: p.name, total: 0, present: 0 }; });
+      workers.forEach(w => {
+        if (byProj[w.project]) { byProj[w.project].total++; if (w.present) byProj[w.project].present++; }
+      });
+      document.getElementById('dash-projects').innerHTML = Object.values(byProj).map(p => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-size:14px;font-weight:500;">${p.name}</div>
+        <div style="font-size:12px;color:var(--text2);">${p.total} workers assigned</div>
+      </div>
+      <span class="badge badge-present">${p.present} present today</span>
+    </div>`).join('');
+    }
+
+    // =========================================================
+    // WORKERS
+    // =========================================================
+    function populateProjectSelect() {
+      const sel = document.getElementById('w-project');
+      if (!sel) return;
+      sel.innerHTML = ProjectDB.all().map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    }
+
+    function renderWorkers() {
+      let workers = WorkerDB.all();
+      const q = (document.getElementById('worker-search')?.value || '').toLowerCase();
+      if (q) workers = workers.filter(w => w.name.toLowerCase().includes(q) || w.type.toLowerCase().includes(q) || projName(w.project).toLowerCase().includes(q));
+      document.getElementById('worker-count').textContent = workers.length;
+      document.getElementById('workers-list').innerHTML = workers.map(w => `
+    <div class="worker-row">
+      <div class="avatar">${initials(w.name)}</div>
+      <div class="worker-info">
+        <div class="worker-name">${w.name}
+          ${w.bank && w.bank.acc ? '<span style="font-size:10px;background:var(--accent-bg);color:var(--accent);padding:1px 7px;border-radius:20px;margin-left:6px;font-weight:600;">Bank ✓</span>' : ''}
+        </div>
+        <div class="worker-meta">${w.type} · ${projName(w.project)} · ${w.mobile || '—'}</div>
+      </div>
+      <div class="worker-wage">${fmt(w.wage)}<small>per day</small></div>
+      <button class="btn btn-sm" onclick="viewWorker(${w.id})">View</button>
+      ${canEdit() ? `<button class="btn btn-sm btn-danger" onclick="removeWorker(${w.id})">Remove</button>` : ''}
+    </div>`).join('');
+    }
+
+    function addWorker() {
+      if (!canEdit()) { toast('You do not have permission to add workers', 'error'); return; }
+      const name = document.getElementById('w-name').value.trim();
+      const wage = parseInt(document.getElementById('w-wage').value);
+      if (!name || !wage) { toast('Please enter worker name and wage', 'error'); return; }
+      const w = {
+        id: ++nextWId, name, wage,
+        type: document.getElementById('w-type').value,
+        mobile: document.getElementById('w-mobile').value.trim(),
+        project: parseInt(document.getElementById('w-project').value) || ProjectDB.all()[0]?.id,
+        aadhaar: document.getElementById('w-aadhaar').value.trim(),
+        bank: {
+          name: document.getElementById('w-bname').value.trim(),
+          acc: document.getElementById('w-bacc').value.trim(),
+          ifsc: document.getElementById('w-bifsc').value.trim(),
+          bank: document.getElementById('w-bbank').value.trim()
+        },
+        present: false, paid: false
+      };
+      WorkerDB.add(w);
+      AuditDB.log('ADD_WORKER', `Added worker "${name}" (₹${wage}/day)`);
+      ['w-name', 'w-wage', 'w-mobile', 'w-aadhaar', 'w-bname', 'w-bacc', 'w-bifsc', 'w-bbank'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+      renderWorkers(); renderDashboard();
+      toast(`Worker "${name}" added`);
+    }
+
+    function removeWorker(id) {
+      if (!canEdit()) { toast('Permission denied', 'error'); return; }
+      const w = WorkerDB.all().find(x => x.id === id);
+      if (!w) return;
+      if (!confirm(`Remove "${w.name}"? This cannot be undone.`)) return;
+      WorkerDB.remove(id);
+      AuditDB.log('REMOVE_WORKER', `Removed worker "${w.name}"`);
+      renderWorkers(); renderDashboard();
+      toast(`"${w.name}" removed`);
+    }
+
+    function viewWorker(id) {
+      const w = WorkerDB.all().find(x => x.id === id);
+      if (!w) return;
+      document.getElementById('modal-worker-body').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem;">
+      <div class="avatar" style="width:48px;height:48px;font-size:16px;">${initials(w.name)}</div>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--accent-dark);">${w.name}</div>
+        <div style="font-size:13px;color:var(--text2);">${w.type} · ${projName(w.project)}</div>
+      </div>
+    </div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:1rem;">
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 0;color:var(--text2);">Mobile</td><td style="padding:8px 0;font-weight:500;">${w.mobile || '—'}</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 0;color:var(--text2);">Aadhaar</td><td style="padding:8px 0;font-weight:500;">${w.aadhaar || '—'}</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 0;color:var(--text2);">Daily Wage</td><td style="padding:8px 0;font-weight:500;">${fmt(w.wage)}</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 0;color:var(--text2);">Monthly (${DAYS_WORKED} days)</td><td style="padding:8px 0;font-weight:600;color:var(--green);">${fmt(w.wage * DAYS_WORKED)}</td></tr>
+      <tr><td style="padding:8px 0;color:var(--text2);">Today's Status</td><td style="padding:8px 0;"><span class="badge ${w.present ? 'badge-present' : 'badge-absent'}">${w.present ? 'Present' : 'Absent'}</span></td></tr>
+    </table>
+    <div style="background:var(--accent-bg);border-radius:var(--radius);padding:1rem;border:1px solid var(--border);">
+      <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Bank Account</div>
+      <table style="width:100%;font-size:13px;border-collapse:collapse;">
+        <tr><td style="padding:5px 0;color:var(--text2);">Holder</td><td style="padding:5px 0;font-weight:500;">${w.bank?.name || '—'}</td></tr>
+        <tr><td style="padding:5px 0;color:var(--text2);">Account No</td><td style="padding:5px 0;font-weight:500;">${w.bank?.acc || '—'}</td></tr>
+        <tr><td style="padding:5px 0;color:var(--text2);">IFSC</td><td style="padding:5px 0;font-weight:500;">${w.bank?.ifsc || '—'}</td></tr>
+        <tr><td style="padding:5px 0;color:var(--text2);">Bank</td><td style="padding:5px 0;font-weight:500;">${w.bank?.bank || '—'}</td></tr>
+      </table>
+    </div>`;
+      openModal('modal-worker');
+    }
+
+    // =========================================================
+    // ATTENDANCE
+    // =========================================================
+    function renderAttendance() {
+      document.getElementById('att-list').innerHTML = WorkerDB.all().map(w => `
+    <div class="att-row">
+      <div class="avatar">${initials(w.name)}</div>
+      <div class="worker-info">
+        <div class="worker-name">${w.name}</div>
+        <div class="worker-meta">${w.type} · ${projName(w.project)}</div>
+      </div>
+      <label>
+        <input type="checkbox" id="att-${w.id}" ${w.present ? 'checked' : ''} ${!canEdit() ? 'disabled' : ''}/>
+        Present
+      </label>
+    </div>`).join('');
+      renderCalendar();
+    }
+
+    function saveAttendance() {
+      if (!canEdit()) { toast('Permission denied', 'error'); return; }
+      const workers = WorkerDB.all();
+      let changed = 0;
+      workers.forEach(w => {
+        const cb = document.getElementById('att-' + w.id);
+        if (cb) { const newVal = cb.checked; if (newVal !== w.present) changed++; w.present = newVal; }
+      });
+      WorkerDB.save(workers);
+      AuditDB.log('ATTENDANCE', `Attendance saved. ${changed} changes.`);
+      renderDashboard();
+      toast('Attendance saved successfully');
+    }
+
+    function markAll(val) {
+      WorkerDB.all().forEach(w => { const cb = document.getElementById('att-' + w.id); if (cb) cb.checked = val; });
+    }
+
+    function renderCalendar() {
+      const rand = [1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0];
+      let html = '';
+      for (let i = 0; i < 1; i++) html += '<div class="cal-day empty"></div>'; // April 1 = Wed (offset 2)
+      html += '<div class="cal-day empty"></div>'; // 2nd offset
+      for (let d = 1; d <= 30; d++) {
+        const cls = d === 14 ? 'today' : (d < 14 ? (rand[d - 1] ? 'present' : 'absent') : '');
+        html += `<div class="cal-day ${cls}">${d}</div>`;
+      }
+      document.getElementById('cal-grid').innerHTML = html;
+    }
+
+    // =========================================================
+    // PAYMENTS
+    // =========================================================
+    function renderPayments() {
+      const workers = WorkerDB.all();
+      const total = workers.reduce((s, w) => s + w.wage * DAYS_WORKED, 0);
+      const paid = workers.filter(w => w.paid).length;
+      document.getElementById('p-total').textContent = fmt(total);
+      document.getElementById('p-days').textContent = DAYS_WORKED;
+      document.getElementById('p-paid').textContent = paid;
+      document.getElementById('p-pending').textContent = workers.length - paid;
+      document.getElementById('pf-days').textContent = DAYS_WORKED * workers.length + ' total';
+      document.getElementById('pf-total').textContent = fmt(total);
+
+      document.getElementById('pay-body').innerHTML = workers.map((w, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td><strong>${w.name}</strong></td>
+      <td>${w.type}</td>
+      <td>${fmt(w.wage)}</td>
+      <td>${DAYS_WORKED}</td>
+      <td style="color:var(--green);font-weight:600;">${fmt(w.wage * DAYS_WORKED)}</td>
+      <td style="font-size:12px;">${w.bank?.bank || '—'}</td>
+      <td><span class="badge ${w.paid ? 'badge-paid' : 'badge-pending'}">${w.paid ? 'Paid' : 'Pending'}</span></td>
+      <td class="role-edit">${canEdit() ? `<button class="btn btn-sm ${w.paid ? '' : 'btn-green'}" onclick="togglePaid(${w.id})">${w.paid ? 'Unpaid' : 'Mark Paid'}</button>` : ''}</td>
+    </tr>`).join('');
+    }
+
+    function togglePaid(id) {
+      if (!canEdit()) { toast('Permission denied', 'error'); return; }
+      const w = WorkerDB.all().find(x => x.id === id);
+      if (!w) return;
+      WorkerDB.update(id, { paid: !w.paid });
+      AuditDB.log('PAYMENT', `"${w.name}" marked as ${!w.paid ? 'Paid' : 'Unpaid'} — ${fmt(w.wage * DAYS_WORKED)}`);
+      renderPayments();
+      toast(`${w.name} marked as ${!w.paid ? 'Paid' : 'Unpaid'}`);
+    }
+
+    // =========================================================
+    // PROJECTS
+    // =========================================================
+    function renderProjects() {
+      document.getElementById('projects-list').innerHTML = ProjectDB.all().map(p => {
+        const assigned = WorkerDB.all().filter(w => w.project === p.id);
+        const sc = p.status === 'Active' ? 'badge-present' : p.status === 'Completed' ? 'badge-paid' : 'badge-pending';
+        return `<div class="card" style="margin-bottom:10px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+        <div>
+          <div style="font-size:15px;font-weight:600;color:var(--accent-dark);margin-bottom:4px;">${p.name}</div>
+          <div style="font-size:13px;color:var(--text2);">📍 ${p.location} · Supervisor: ${p.supervisor || '—'}</div>
+          <div style="font-size:13px;color:var(--text2);margin-top:2px;">Start: ${p.start || '—'} · Budget: ${fmt(p.budget || 0)}</div>
+        </div>
+        <span class="badge ${sc}">${p.status}</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;">
+        ${assigned.map(w => `<span style="font-size:12px;background:var(--accent-bg);color:var(--accent);padding:3px 10px;border-radius:20px;font-weight:500;">${w.name}</span>`).join('')}
+        ${assigned.length === 0 ? '<span style="font-size:12px;color:var(--text3);">No workers assigned</span>' : ''}
+      </div>
+      ${canEdit() ? `<div class="actions" style="margin-top:10px;"><button class="btn btn-sm btn-danger" onclick="removeProject(${p.id})">Remove</button></div>` : ''}
+    </div>`;
+      }).join('');
+    }
+
+    function addProject() {
+      if (!canEdit()) { toast('Permission denied', 'error'); return; }
+      const name = document.getElementById('p-name').value.trim();
+      if (!name) { toast('Please enter project name', 'error'); return; }
+      const p = {
+        id: ++nextPId, name,
+        location: document.getElementById('p-location').value.trim(),
+        supervisor: document.getElementById('p-supervisor').value.trim(),
+        start: document.getElementById('p-start').value,
+        status: document.getElementById('p-status').value,
+        budget: parseInt(document.getElementById('p-budget').value) || 0
+      };
+      ProjectDB.add(p);
+      AuditDB.log('ADD_PROJECT', `Added project "${name}"`);
+      ['p-name', 'p-location', 'p-supervisor', 'p-start', 'p-budget'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+      renderProjects(); populateProjectSelect();
+      toast(`Project "${name}" added`);
+    }
+
+    function removeProject(id) {
+      if (!canEdit()) { toast('Permission denied', 'error'); return; }
+      if (WorkerDB.all().some(w => w.project === id)) { toast('Cannot remove — workers assigned to this project', 'error'); return; }
+      const p = ProjectDB.all().find(x => x.id === id);
+      ProjectDB.remove(id);
+      AuditDB.log('REMOVE_PROJECT', `Removed project "${p?.name}"`);
+      renderProjects(); populateProjectSelect();
+      toast('Project removed');
+    }
+
+    // =========================================================
+    // CITY VIEW
+    // =========================================================
+    function renderCityWise() {
+      const workers = WorkerDB.all();
+      const projects = ProjectDB.all();
+
+      // Map to group by city (location)
+      const cities = {};
+      workers.forEach(w => {
+        const p = projects.find(proj => proj.id === w.project);
+        const loc = p ? p.location : 'Unknown City';
+        if (!cities[loc]) cities[loc] = { workers: [], projects: new Set(), totalWage: 0 };
+        cities[loc].workers.push(w);
+        if (p) cities[loc].projects.add(p.name);
+        cities[loc].totalWage += w.wage;
+      });
+
+      const cityList = Object.keys(cities).sort();
+
+      document.getElementById('cv-cities').textContent = cityList.length;
+      document.getElementById('cv-total').textContent = workers.length;
+      document.getElementById('cv-wages').textContent = fmt(workers.reduce((s, w) => s + w.wage, 0));
+
+      document.getElementById('citywise-list').innerHTML = cityList.map(city => {
+        const c = cities[city];
+        const presentCount = c.workers.filter(w => w.present).length;
+        return `
+      <div class="card" style="margin-bottom:0;">
+        <div style="font-size:16px;font-weight:700;color:var(--accent-dark);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+          📍 ${city}
+        </div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:12px;">
+          <strong>${c.workers.length} Workers</strong> · ${c.projects.size} Active Projects<br/>
+          Total Daily Wages: <strong style="color:var(--green);">${fmt(c.totalWage)}</strong>
+        </div>
+        <div style="margin-bottom:12px;">
+          <span class="badge badge-present">${presentCount} Present</span>
+          <span class="badge badge-absent">${c.workers.length - presentCount} Absent</span>
+        </div>
+        <div style="font-size:12px;max-height:150px;overflow-y:auto;border-top:1px solid var(--border);padding-top:8px;">
+          ${c.workers.map(w => `
+            <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--bg);">
+              <span>${w.name} (${w.type})</span>
+              <strong>${fmt(w.wage)}</strong>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+      }).join('');
+    }
+
+    // =========================================================
+    // USERS
+    // =========================================================
+    function renderUsers() {
+      const users = AUTH.getUsers();
+      document.getElementById('users-list').innerHTML = users.map(u => `
+    <div class="user-row">
+      <div class="user-ava">${u.name.charAt(0).toUpperCase()}</div>
+      <div class="user-info">
+        <div class="user-uname">${u.name} <span class="badge ${u.role === 'admin' ? 'badge-admin' : u.role === 'manager' ? 'badge-manager' : 'badge-viewer'}">${u.role}</span></div>
+        <div class="user-email">@${u.username} · ${u.email || 'no email'}</div>
+      </div>
+      ${u.username !== currentUser.username ? `<button class="btn btn-sm btn-danger" onclick="removeUser(${u.id},'${u.username}')">Remove</button>` : '<span style="font-size:12px;color:var(--accent);">(You)</span>'}
+    </div>`).join('');
+    }
+
+    function addUser() {
+      const name = document.getElementById('u-name').value.trim();
+      const uname = document.getElementById('u-uname').value.trim();
+      const pass = document.getElementById('u-pass').value;
+      const email = document.getElementById('u-email').value.trim();
+      const role = document.getElementById('u-role').value;
+      if (!name || !uname || !pass) { toast('Name, username and password are required', 'error'); return; }
+      if (pass.length < 6) { toast('Password must be at least 6 characters', 'error'); return; }
+      const result = AUTH.addUser(name, uname, pass, email, role);
+      if (result.error) { toast(result.error, 'error'); return; }
+      AuditDB.log('ADD_USER', `Added user "${uname}" with role "${role}"`);
+      ['u-name', 'u-uname', 'u-pass', 'u-email'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+      renderUsers();
+      toast(`User "${uname}" added`);
+    }
+
+    function removeUser(id, uname) {
+      if (!confirm(`Remove user "${uname}"?`)) return;
+      AUTH.removeUser(id);
+      AuditDB.log('REMOVE_USER', `Removed user "${uname}"`);
+      renderUsers();
+      toast(`User "${uname}" removed`);
+    }
+
+    // =========================================================
+    // AUDIT LOG
+    // =========================================================
+    function renderAudit() {
+      const logs = AuditDB.all();
+      if (!logs.length) {
+        document.getElementById('audit-log').innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text3);">No audit logs yet.</div>';
+        return;
+      }
+      document.getElementById('audit-log').innerHTML = logs.map(l => `
+    <div class="audit-row">
+      <div class="audit-time">${new Date(l.time).toLocaleString('en-IN')}</div>
+      <span class="audit-badge">${l.action}</span>
+      <div style="flex:1;font-size:13px;color:var(--text2);">${l.detail} <span style="color:var(--text3);">by @${l.user}</span></div>
+    </div>`).join('');
+    }
+
+    function clearAudit() {
+      if (!confirm('Clear all audit logs?')) return;
+      AuditDB.clear();
+      renderAudit();
+      toast('Audit log cleared');
+    }
+
+    // =========================================================
+    // EXCEL EXPORTS
+    // =========================================================
+    function exportWorkersExcel() {
+      const data = WorkerDB.all().map((w, i) => ({
+        'S.No': i + 1, 'Name': w.name, 'Daily Wage': w.wage, 'Work Type': w.type,
+        'Mobile': w.mobile, 'Project': projName(w.project), 'Aadhaar': w.aadhaar || '',
+        'Bank': w.bank?.bank || '', 'Account No': w.bank?.acc || '', 'IFSC': w.bank?.ifsc || ''
+      }));
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Workers');
+      XLSX.writeFile(wb, 'Rozgar_Workers.xlsx');
+      AuditDB.log('EXPORT', 'Exported workers to Excel');
+      toast('Workers exported to Excel');
+    }
+
+    function exportPayExcel() {
+      const data = WorkerDB.all().map((w, i) => ({
+        'S.No': i + 1, 'Name': w.name, 'Work Type': w.type, 'Daily Wage': w.wage,
+        'Days Worked': DAYS_WORKED, 'Gross Amount': w.wage * DAYS_WORKED,
+        'Bank': w.bank?.bank || '', 'Account No': w.bank?.acc || '', 'IFSC': w.bank?.ifsc || '',
+        'Status': w.paid ? 'Paid' : 'Pending'
+      }));
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Payments');
+      XLSX.writeFile(wb, 'Rozgar_Payments_April2026.xlsx');
+      AuditDB.log('EXPORT', 'Exported payments to Excel');
+      toast('Payments exported to Excel');
+    }
+
+    function exportAttExcel() {
+      const rand = [1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0];
+      const data = WorkerDB.all().map(w => {
+        const row = { 'Name': w.name, 'Work Type': w.type, 'Project': projName(w.project) };
+        let total = 0;
+        for (let d = 1; d <= 30; d++) { const v = rand[d - 1]; row[`${d} Apr`] = v ? 'P' : 'A'; total += v; }
+        row['Total Present'] = total;
+        return row;
+      });
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Attendance');
+      XLSX.writeFile(wb, 'Rozgar_Attendance_April2026.xlsx');
+      AuditDB.log('EXPORT', 'Exported attendance to Excel');
+      toast('Attendance exported to Excel');
+    }
+
+    // =========================================================
+    // KEYBOARD SHORTCUT
+    // =========================================================
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && document.getElementById('login-page').style.display !== 'none') doLogin();
+    });
+
+    // =========================================================
+    // INIT — check existing session
+    // =========================================================
+    (function init() {
+      const session = AUTH.currentUser();
+      if (session) { currentUser = session; bootApp(); }
+    })();
+  </script>
+</body>
+
+</html>
